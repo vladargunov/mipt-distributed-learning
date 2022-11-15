@@ -18,6 +18,7 @@ class Dataset:
 
         self._features = torch.from_numpy(data["features"]).to(dtype)
         self._targets = torch.from_numpy(data["targets"]).to(dtype)
+        self.device = "cpu"
 
     def __getitem__(self, index):
         return self._features[index], self._targets[index]
@@ -55,4 +56,14 @@ class Dataset:
             features.append(feature)
             targets.append(target)
 
-        return torch.stack(features), torch.stack(targets).reshape(-1)
+        return torch.stack(features).to(self.device), torch.stack(targets).reshape(
+            -1
+        ).to(self.device)
+
+    def _send_to_gpu(self):
+        """Sends data to GPU"""
+        self.device = "cuda"
+
+    def _send_to_cpu(self):
+        """Sends data to CPU"""
+        self.device = "cpu"

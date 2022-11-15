@@ -115,9 +115,14 @@ class DLFramework:
             # Send model to gpu
             self._model.to("cuda")
 
-            # Send data to gpu
-            self._dataset._features.to("cuda")
-            self._dataset._targets.to("cuda")
+            # Set CUDA flag for data
+            if "_dataset" in dir(self):
+                self._dataset._send_to_gpu()
+            else:
+                print(
+                    "Dataset was not included into the framework"
+                    + "Please call 'prepare_data' method and call thsi method again."
+                )
         else:
             print("CUDA is not supported on this OS.")
 
@@ -129,5 +134,10 @@ class DLFramework:
         self._model.to("cpu")
 
         # Send data to cpu
-        self._dataset._features.to("cpu")
-        self._dataset._targets.to("cpu")
+        if "_dataset" in dir(self):
+            self._dataset._send_to_cpu()
+        else:
+            print(
+                "Dataset was not included into the framework"
+                + "Please call 'prepare_data' method and call thsi method again."
+            )
