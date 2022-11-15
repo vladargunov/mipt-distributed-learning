@@ -94,7 +94,7 @@ class DLFramework:
         """
         Predict data given a dataset type
         """
-        if self._model.is_cuda:
+        if next(self._model.parameters()).is_cuda:
             return self.forward(dataset._features.to('cuda'))
         else:
             return self.forward(dataset._features)
