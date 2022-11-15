@@ -71,8 +71,8 @@ class DLFramework:
 
             # Determine print information
             epoch_print = f"Epoch : {epoch}"
-            train_print = f"Train Loss : {losses_cache['train']}"
-            val_print = f"Validation Loss : {losses_cache['validation']}"
+            train_print = f"Train Loss : {losses_cache['train']:.2f}"
+            val_print = f"Validation Loss : {losses_cache['validation']:.2f}"
             if losses_cache["validation"] != 0:
                 print(epoch_print, train_print, val_print, sep=" | ")
             else:
@@ -94,10 +94,11 @@ class DLFramework:
         """
         Predict data given a dataset type
         """
-        if next(self._model.parameters()).is_cuda:
-            return self.forward(dataset._features.to('cuda'))
-        else:
-            return self.forward(dataset._features)
+        with torch.no_grad():
+            if next(self._model.parameters()).is_cuda:
+                return self.forward(dataset._features.to('cuda'))
+            else:
+                return self.forward(dataset._features)
 
     def load_model(self, path: Path):
         """
