@@ -152,7 +152,7 @@ class DLFramework:
             print('...Training on multiple GPUs...')
             # Initialise distributed training
             # Get path of the initialisation file
-            path_file = Path(processing.__file__).resolve() / 'run_distributed_train.py'
+            path_file = Path(processing.__file__).resolve().parent / 'run_distributed_train.py'
             subprocess.run(f"python -m torch.distributed.launch {path_file}".split())
             self._train_multiple_devices(**params)
 
