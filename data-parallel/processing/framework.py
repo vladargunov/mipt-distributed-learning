@@ -130,23 +130,25 @@ class DLFramework:
 
         print("...Training Loop Completed...")
 
-    def train(self,epochs: int = 2, batch_size: int = 4, validation_frequency: Optional[int] = None):
+    def train(self, epochs: int = 2, batch_size: int = 4, validation_frequency: Optional[int] = None):
         """
         Generic train function which determines number of available
         GPU devices and trains data on them accordingly
         """
         number_devices = torch.cuda.device_count()
+        params = locals()
+        params.pop('self')
         print(f"Number of GPU devices detected: {number_devices}")
         if number_devices == 0:
             print('...Training on CPU...')
-            self._train_single_device(**locals())
+            self._train_single_device(**params)
         elif number_devices == 1:
             print('...Training on single GPU...')
             self.send_to_gpu()
-            self._train_single_device(**locals())
+            self._train_single_device(**params)
         else:
             print('...Training on multiple GPUs...')
-            self._train_multiple_devices(**locals())
+            self._train_multiple_devices(**lparams)
 
     def save(self, path: Path):
         """
