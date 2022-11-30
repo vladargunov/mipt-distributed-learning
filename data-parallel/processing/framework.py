@@ -148,7 +148,7 @@ class DLFramework:
             self._train_single_device(**params)
         else:
             print('...Training on multiple GPUs...')
-            self._train_multiple_devices(**lparams)
+            self._train_multiple_devices(**params)
 
     def save(self, path: Path):
         """
