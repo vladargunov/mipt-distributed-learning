@@ -135,9 +135,9 @@ class DLFramework:
         Generic train function which determines number of available
         GPU devices and trains data on them accordingly
         """
-        number_devices = torch.cuda.device_count()
         params = locals()
         params.pop('self')
+        number_devices = torch.cuda.device_count()
         print(f"Number of GPU devices detected: {number_devices}")
         if number_devices == 0:
             print('...Training on CPU...')
