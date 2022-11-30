@@ -1,4 +1,5 @@
 import logging
+import subprocess
 import torch
 import numpy as np
 
@@ -148,6 +149,8 @@ class DLFramework:
             self._train_single_device(**params)
         else:
             print('...Training on multiple GPUs...')
+            # Initialise distributed training
+            subprocess.run("python -m torch.distributed.launch run_distributed_train.py".split())
             self._train_multiple_devices(**params)
 
     def save(self, path: Path):
