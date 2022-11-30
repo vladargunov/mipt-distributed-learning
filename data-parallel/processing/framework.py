@@ -104,7 +104,7 @@ class DLFramework:
                 # Send data to current gpu
                 features = features.to(device)
                 targets = targets.to(device)
-                
+
                 output = self.forward(features=features)
                 loss = self._loss(output, targets)
                 losses_cache["train"] += loss
@@ -113,7 +113,7 @@ class DLFramework:
 
             if epoch % validation_frequency == 0:
                 for features, targets in self._dataset.validation_dataloader(
-                    batch_size, , distributed_mode=True
+                    batch_size, distributed_mode=True
                 ):
                     with torch.no_grad():
                         output = self.forward(features=features)
