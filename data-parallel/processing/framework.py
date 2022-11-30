@@ -3,6 +3,7 @@ import subprocess
 import torch
 import numpy as np
 
+import processing
 from processing.data_management import Dataset
 
 from typing import Optional, Dict
@@ -150,7 +151,9 @@ class DLFramework:
         else:
             print('...Training on multiple GPUs...')
             # Initialise distributed training
-            subprocess.run("python -m torch.distributed.launch run_distributed_train.py".split())
+            # Get path of the initialisation file
+            path_file = Path(processing.__file__).resolve() / 'run_distributed_train.py'
+            subprocess.run(f"python -m torch.distributed.launch {path_file}".split())
             self._train_multiple_devices(**params)
 
     def save(self, path: Path):
