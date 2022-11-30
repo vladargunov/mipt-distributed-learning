@@ -1,10 +1,16 @@
 import torch
+import argparse
 
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--local_rank", type=int)
+    parser.add_argument("--world_size", default=2)
+    return parser.parse_args()
 
-if __name__ == '__main__':
-    world_size = torch.cuda.device_count()
+if __name__ == "__main__":
+    args = parse_args()
     torch.distributed.init_process_group(
         "nccl",
-        rank=0,
-        world_size=world_size
+        rank=args.local_rank,
+        world_size=args.world_size,
     )
