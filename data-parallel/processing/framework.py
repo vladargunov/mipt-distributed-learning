@@ -136,21 +136,17 @@ class DLFramework:
         GPU devices and trains data on them accordingly
         """
         number_devices = torch.cuda.device_count()
-        print(f"Number of GPU devices detected: {}")
+        print(f"Number of GPU devices detected: {number_devices}")
         if number_devices == 0:
             print('...Training on CPU...')
             self._train_single_device(**locals())
         elif number_devices == 1:
             print('...Training on single GPU...')
             self.send_to_gpu()
-            self._train_multiple_devices(**locals())
+            self._train_single_device(**locals())
         else:
             print('...Training on multiple GPUs...')
-            pass
-
-
-
-
+            self._train_multiple_devices(**locals())
 
     def save(self, path: Path):
         """
