@@ -2,7 +2,7 @@ import torch
 
 
 if __name__ == '__main__':
-    world_size = torch.distributed.init_process_group
+    world_size = torch.cuda.device_count()
     torch.distributed.init_process_group(
         "nccl",
         rank=0,
