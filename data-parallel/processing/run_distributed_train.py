@@ -1,8 +1,6 @@
 import argparse
 import sys
 import os
-os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
-os.environ["CUDA_VISIBLE_DEVICES"] = "4,5"
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import torch
 import numpy as np
