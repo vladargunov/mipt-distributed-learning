@@ -39,6 +39,5 @@ def run_example():
     test_framework.train(epochs=3, batch_size=4, validation_frequency=1)
 
 if __name__ == "__main__":
-    args = parse_args()
     torch.distributed.init_process_group("nccl")
     run_example()
