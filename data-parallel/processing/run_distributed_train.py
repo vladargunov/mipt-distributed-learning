@@ -49,9 +49,6 @@ def run_example():
 
 if __name__ == "__main__":
     args = parse_args()
-    torch.distributed.init_process_group(
-       "nccl",
-       rank=args.local_rank,
-       world_size=args.world_size,
-    )
+    torch.distributed.init_process_group("nccl")
+    print(torch.distributed.get_rank())
     run_example()
