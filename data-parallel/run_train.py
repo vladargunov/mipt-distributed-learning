@@ -38,16 +38,7 @@ def run_example():
     # Train model
     test_framework.train(epochs=3, batch_size=4, validation_frequency=1)
 
-    
-def parse_args():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--local_rank", type=int)
-    return parser.parse_args()
-
 if __name__ == "__main__":
     args = parse_args()
-    torch.distributed.init_process_group("nccl", 
-                                         world_size=torch.cuda.device_count(),
-                                         rank=args.local_rank)
-    print(f"Current rank: {torch.distributed.get_rank()}")
+    torch.distributed.init_process_group("nccl")
     run_example()
