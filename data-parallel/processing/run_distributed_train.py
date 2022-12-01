@@ -2,7 +2,7 @@ import argparse
 import sys
 import os
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
-os.environ["CUDA_VISIBLE_DEVICES"] = "5"
+os.environ["CUDA_VISIBLE_DEVICES"] = "4,5"
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import torch
 import numpy as np
@@ -20,7 +20,7 @@ def parse_args():
 def run_example():
     # Determine the local rank of the model
     local_rank = torch.distributed.get_rank()
-    
+
     # Sample data
     sample_data = {
             "features": np.random.rand(12, 2),

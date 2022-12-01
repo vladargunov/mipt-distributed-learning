@@ -197,7 +197,7 @@ class DLFramework:
             if index is None:
                 self._model.to("cuda")
             else:
-                elf._model.to(f"cuda:{index}")
+                self._model.to(f"cuda:{index}")
 
             # Set CUDA flag for data
             if "_dataset" in dir(self):
