@@ -1,6 +1,7 @@
 import torch
 import numpy as np
 from typing import Dict, Optional
+
 from torch.utils.data.distributed import DistributedSampler
 
 
@@ -30,10 +31,6 @@ class Dataset:
     def train_dataloader(self, batch_size, distributed_mode=False):
         """
         Returns a train dataloader of features and targets
-        Args:
-        batch_size : batch size
-        distributed_mode : boolean which sets distributivity settings
-        in sampler
         """
         sampler = DistributedSampler(self) if distributed_mode else None
         train_dataloader = torch.utils.data.DataLoader(
@@ -45,10 +42,6 @@ class Dataset:
     def validation_dataloader(self, batch_size, distributed_mode=False):
         """
         Returns a validation dataloader of features and targets
-        Args:
-        batch_size : batch size
-        distributed_mode : boolean which sets distributivity settings
-        in sampler
         """
         sampler = DistributedSampler(self) if distributed_mode else None
         val_dataloader = torch.utils.data.DataLoader(
@@ -73,12 +66,9 @@ class Dataset:
             -1
         ).to(self.device)
 
-    def _send_to_gpu(self, rank_device=None):
+    def _send_to_gpu(self, device_rank=0):
         """Sends data to GPU"""
-        if rank_device is None:
-            self.device = "cuda"
-        else:
-            self.device = f"cuda:{rank_device}"
+        self.device = f"cuda:{device_rank}"
 
     def _send_to_cpu(self):
         """Sends data to CPU"""
