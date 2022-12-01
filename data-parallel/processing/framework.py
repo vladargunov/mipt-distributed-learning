@@ -2,6 +2,7 @@ import logging
 import subprocess
 import torch
 import numpy as np
+import os
 
 import processing
 from processing.data_management import Dataset
@@ -94,9 +95,11 @@ class DLFramework:
         on multiple GPUs
         """
         # In distributed setting send model to current gpu
-        local_rank = torch.distributed.get_rank()
+        local_rank = int(os.environ["LOCAL_RANK"])
         device = f"cuda:{local_rank}"
-        self._model = torch.nn.parallel.DistributedDataParallel(self._model)
+        self._model = torch.nn.parallel.DistributedDataParallel(self._model,
+                                                    device_ids=[local_rank])
+        self._model.to(device)
 
 
         print("...Start Training Loop...")
