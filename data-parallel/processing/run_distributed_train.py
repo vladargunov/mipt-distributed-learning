@@ -48,6 +48,6 @@ if __name__ == "__main__":
     args = parse_args()
     torch.distributed.init_process_group("nccl", 
                                          world_size=torch.cuda.device_count(),
-                                         ranl=args.local_rank)
+                                         rank=args.local_rank)
     print(f"Current rank: {torch.distributed.get_rank()}")
     run_example()
