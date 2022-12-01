@@ -20,11 +20,8 @@ class DistributedDLFramework(DLFramework):
         self._model = DDP(self._model, device_ids=[self.gpu_id])
 
 
-    def ddp_setup():
-        init_process_group(backend="nccl")
 
-
-    def train(**kwargs):
+    def train(self, **kwargs):
         """
         Perform train and validation on given data in prepare_data
         """
