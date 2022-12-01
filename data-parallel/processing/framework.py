@@ -1,10 +1,7 @@
 import logging
-import subprocess
 import torch
 import numpy as np
-import os
 
-import processing
 from processing.data_management import Dataset
 
 from typing import Optional, Dict
@@ -44,7 +41,7 @@ class DLFramework:
 
         return output.reshape(-1)
 
-    def _train_single_device(
+    def train(
         self,
         epochs: int = 2,
         batch_size: int = 4,
@@ -52,7 +49,6 @@ class DLFramework:
     ):
         """
         Perform train and validation on given data in prepare_data
-        on single CPU/GPU
         """
         print("...Start Training Loop...")
         for epoch in range(1, epochs + 1):
@@ -84,78 +80,6 @@ class DLFramework:
 
         print("...Training Loop Completed...")
 
-    def _train_multiple_devices(
-        self,
-        epochs: int = 2,
-        batch_size: int = 4,
-        validation_frequency: Optional[int] = None,
-    ):
-        """
-        Perform train and validation on given data in prepare_data
-        on multiple GPUs
-        """
-        # In distributed setting send model to current gpu
-        local_rank = int(os.environ["LOCAL_RANK"])
-        device = f"cuda:{local_rank}"
-        self._model = torch.nn.parallel.DistributedDataParallel(self._model,
-                                                    device_ids=[local_rank])
-        self._model.to(device)
-
-
-        print("...Start Training Loop...")
-        for epoch in range(1, epochs + 1):
-            losses_cache = {"train": 0, "validation": 0}
-            for features, targets in self._dataset.train_dataloader(batch_size, distributed_mode=True):
-                self._model.zero_grad()
-                # Send data to current gpu
-                features = features.to(device)
-                targets = targets.to(device)
-
-                output = self.forward(features=features)
-                loss = self._loss(output, targets)
-                losses_cache["train"] += loss
-                loss.backward()
-                self._optimizer.step()
-
-            if epoch % validation_frequency == 0:
-                for features, targets in self._dataset.validation_dataloader(
-                    batch_size, distributed_mode=True
-                ):
-                    with torch.no_grad():
-                        output = self.forward(features=features)
-                        losses_cache["validation"] += loss
-
-            # Determine print information
-            epoch_print = f"Epoch : {epoch}"
-            train_print = f"Train Loss : {losses_cache['train']:.2f}"
-            val_print = f"Validation Loss : {losses_cache['validation']:.2f}"
-            if losses_cache["validation"] != 0:
-                print(epoch_print, train_print, val_print, sep=" | ")
-            else:
-                print(epoch_print, train_print)
-
-        print("...Training Loop Completed...")
-
-    def train(self, epochs: int = 2, batch_size: int = 4, validation_frequency: Optional[int] = None):
-        """
-        Generic train function which determines number of available
-        GPU devices and trains data on them accordingly
-        """
-        params = locals()
-        params.pop('self')
-        number_devices = torch.cuda.device_count()
-        print(f"Number of GPU devices detected: {number_devices}")
-        if number_devices == 0:
-            print('...Training on CPU...')
-            self._train_single_device(**params)
-        elif number_devices == 1:
-            print('...Training on single GPU...')
-            self.send_to_gpu()
-            self._train_single_device(**params)
-        else:
-            print('...Training on multiple GPUs...')
-            self._train_multiple_devices(**params)
-
     def save(self, path: Path):
         """
         Save model
@@ -186,32 +110,25 @@ class DLFramework:
         """
         self._model.load(path)
 
-    def send_to_gpu(self, index=None):
+    def send_to_gpu(self, device_rank=0):
         """
         Check if gpu is available and then
         send data and model to the gpu
         """
         if torch.cuda.is_available():
             # Send model to gpu
-            if index is None:
-                self._model.to("cuda")
-            else:
-                self._model.to(f"cuda:{index}")
+            self._model.to(f"cuda:{device_rank}")
 
             # Set CUDA flag for data
             if "_dataset" in dir(self):
-                if index is None:
-                    self._dataset._send_to_gpu()
-                else:
-                    self._dataset._send_to_gpu(index)
+                self._dataset._send_to_gpu()
             else:
                 print(
                     "Dataset was not included into the framework"
-                    + "Please call 'prepare_data' method and call this method again."
+                    + "Please call 'prepare_data' method and call thsi method again."
                 )
         else:
             print("CUDA is not supported on this OS.")
-
 
     def send_to_cpu(self):
         """
@@ -226,5 +143,5 @@ class DLFramework:
         else:
             print(
                 "Dataset was not included into the framework"
-                + "Please call 'prepare_data' method and call this method again."
+                + "Please call 'prepare_data' method and call thsi method again."
             )
