@@ -8,12 +8,6 @@ import numpy as np
 from processing import framework
 from processing.data_management import Dataset
 
-def parse_args():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--local_rank", type=int)
-    parser.add_argument("--world_size", default=2)
-    return parser.parse_args()
-
 
 def run_example():
     # Determine the local rank of the model
