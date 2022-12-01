@@ -1,7 +1,7 @@
 import os
 import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
+from typing import Optional, Dict
 import torch.multiprocessing as mp
 
 from torch.nn.parallel import DistributedDataParallel as DDP
@@ -16,12 +16,15 @@ class DistributedDLFramework(DLFramework):
         self.gpu_id = int(os.environ["LOCAL_RANK"])
 
         self.prepare_data(dataset)
-        self._model = self.send_to_gpu(self.gpu_id)
+        sself._model = self._model.to(self.gpu_id)
         self._model = DDP(self._model, device_ids=[self.gpu_id])
 
 
 
-    def train(self, **kwargs):
+    def train(self,
+                epochs: int = 2,
+                batch_size: int = 4,
+                validation_frequency: Optional[int] = None):
         """
         Perform train and validation on given data in prepare_data
         """
@@ -29,6 +32,10 @@ class DistributedDLFramework(DLFramework):
         for epoch in range(1, epochs + 1):
             losses_cache = {"train": 0, "validation": 0}
             for features, targets in self._dataset.train_dataloader(batch_size, distributed_mode=True):
+                # Send all data to same gpu
+                features = features.to(self.gpu_id)
+                targets = targets.to(self.gpu_id)
+
                 self._model.zero_grad()
                 output = self.forward(features=features)
                 loss = self._loss(output, targets)
