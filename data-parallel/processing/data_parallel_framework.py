@@ -2,6 +2,7 @@ import os
 import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from typing import Optional, Dict
+import torch
 import torch.multiprocessing as mp
 
 from torch.nn.parallel import DistributedDataParallel as DDP
@@ -16,7 +17,7 @@ class DistributedDLFramework(DLFramework):
         self.gpu_id = int(os.environ["LOCAL_RANK"])
 
         self.prepare_data(dataset)
-        sself._model = self._model.to(self.gpu_id)
+        self._model = self._model.to(self.gpu_id)
         self._model = DDP(self._model, device_ids=[self.gpu_id])
 
 
@@ -56,9 +57,7 @@ class DistributedDLFramework(DLFramework):
             epoch_print = f"Epoch : {epoch}"
             train_print = f"Train Loss : {losses_cache['train']:.2f}"
             val_print = f"Validation Loss : {losses_cache['validation']:.2f}"
-            if losses_cache["validation"] != 0:
-                print(gpu_id, epoch_print, train_print, val_print, sep=" | ")
-            else:
-                print(epoch_print, train_print)
+            print(gpu_id, epoch_print, train_print, val_print, sep=" | ")
+
 
         print("...Training Loop Completed...")
