@@ -98,6 +98,7 @@ class DLFramework:
         device = f"cuda:{local_rank}"
         self._model = torch.nn.parallel.DistributedDataParallel(self._model)
 
+
         print("...Start Training Loop...")
         for epoch in range(1, epochs + 1):
             losses_cache = {"train": 0, "validation": 0}
@@ -186,18 +187,24 @@ class DLFramework:
         """
         self._model.load(path)
 
-    def send_to_gpu(self):
+    def send_to_gpu(self, index=None):
         """
         Check if gpu is available and then
         send data and model to the gpu
         """
         if torch.cuda.is_available():
             # Send model to gpu
-            self._model.to("cuda")
+            if index is None:
+                self._model.to("cuda")
+            else:
+                elf._model.to(f"cuda:{index}")
 
             # Set CUDA flag for data
             if "_dataset" in dir(self):
-                self._dataset._send_to_gpu()
+                if index is None:
+                    self._dataset._send_to_gpu()
+                else:
+                    self._dataset._send_to_gpu(index)
             else:
                 print(
                     "Dataset was not included into the framework"
@@ -205,6 +212,7 @@ class DLFramework:
                 )
         else:
             print("CUDA is not supported on this OS.")
+
 
     def send_to_cpu(self):
         """
