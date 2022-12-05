@@ -3,6 +3,7 @@ import torch
 import numpy as np
 
 from processing.data_management import Dataset
+import torch.distributed as dist
 
 from typing import Optional, Dict
 from pathlib import Path
@@ -55,19 +56,23 @@ class DLFramework:
             losses_cache = {"train": 0, "validation": 0}
             for features, targets in self._dataset.train_dataloader(batch_size):
                 self._model.zero_grad()
+
                 output = self.forward(features=features)
-                loss = self._loss(output, targets)
-                losses_cache["train"] += loss
-                loss.backward()
-                self._optimizer.step()
+                if dist.get_rank() == 0:
+                    loss = self._loss(output, targets)
+                    losses_cache["train"] += loss
+                    loss.backward()
+                    self._optimizer.step()
 
             if epoch % validation_frequency == 0:
                 for features, targets in self._dataset.validation_dataloader(
                     batch_size
                 ):
                     with torch.no_grad():
-                        output = self.forward(features=features)
-                        losses_cache["validation"] += loss
+                        if dist.get_rank() == 0:
+                            output = self.forward(features=features)
+                            val_loss = self._loss(output, targets)
+                            losses_cache["validation"] += val_loss
 
             # Determine print information
             epoch_print = f"Epoch : {epoch}"
