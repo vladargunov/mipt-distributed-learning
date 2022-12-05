@@ -55,10 +55,11 @@ class DLFramework:
         for epoch in range(1, epochs + 1):
             losses_cache = {"train": 0, "validation": 0}
             for features, targets in self._dataset.train_dataloader(batch_size):
-                self._model.zero_grad()
+
 
 
                 if dist.get_rank() == 0:
+                    self._model.zero_grad()
                     output = self.forward(features=features)
                     print('Output: ', output)
                     loss = self._loss(output, targets.to(dist.get_rank()))
@@ -66,8 +67,7 @@ class DLFramework:
                     loss.backward()
                     self._optimizer.step()
                 else:
-                    with torch.no_grad():
-                        output = self.forward(features=features)
+                    output = self.forward(features=features)
 
             if epoch % validation_frequency == 0:
                 for features, targets in self._dataset.validation_dataloader(
@@ -78,15 +78,15 @@ class DLFramework:
                             output = self.forward(features=features)
                             val_loss = self._loss(output, targets.to(dist.get_rank()))
                             losses_cache["validation"] += val_loss
-
-            # Determine print information
-            epoch_print = f"Epoch : {epoch}"
-            train_print = f"Train Loss : {losses_cache['train']:.2f}"
-            val_print = f"Validation Loss : {losses_cache['validation']:.2f}"
-            if losses_cache["validation"] != 0:
-                print(epoch_print, train_print, val_print, sep=" | ")
-            else:
-                print(epoch_print, train_print)
+            if dist.get_rank() == 0:
+                # Determine print information
+                epoch_print = f"Epoch : {epoch}"
+                train_print = f"Train Loss : {losses_cache['train']:.2f}"
+                val_print = f"Validation Loss : {losses_cache['validation']:.2f}"
+                if losses_cache["validation"] != 0:
+                    print(epoch_print, train_print, val_print, sep=" | ")
+                else:
+                    print(epoch_print, train_print)
 
         print(f"Rank {dist.get_rank()}\n ...Training Loop Completed...")
 

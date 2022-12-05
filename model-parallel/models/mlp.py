@@ -15,18 +15,12 @@ class DistrMLP(nn.Module):
 
         self.out_tensors = [torch.zeros(input_shape[0], output_shape).to(0) for _ in range(num_gpus)]
 
-
-
-
-
     def forward(self, x):
         x = x.to(self.current_rank)
         x = self.relu(self.fc(x))
-        print('X: ', x.shape)
 
         if self.current_rank == 0:
             dist.gather(x, gather_list=self.out_tensors)
-            print('Shape: ', torch.cat(self.out_tensors, -1).shape)
             return torch.cat(self.out_tensors, -1).to(self.current_rank)
         else:
             dist.gather(x)
