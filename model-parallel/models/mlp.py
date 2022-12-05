@@ -22,11 +22,12 @@ class DistrMLP(nn.Module):
     def forward(self, x):
         x = x.to(self.current_rank)
         x = self.relu(self.fc(x))
+        print('X: ', x.shape)
 
         if self.current_rank == 0:
             dist.gather(x, gather_list=self.out_tensors)
-            print(self.out_tensors)
-            return torch.cat(self.out_tensors, -1)
+            print('Shape: ', torch.cat(self.out_tensors, -1).shape)
+            return torch.cat(self.out_tensors, -1).to(self.current_rank)
         else:
             dist.gather(x)
-            return torch.cat(self.out_tensors, -1)
+            return torch.cat(self.out_tensors, -1).to(self.current_rank)

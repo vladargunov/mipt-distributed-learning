@@ -61,7 +61,7 @@ class DLFramework:
                 if dist.get_rank() == 0:
                     output = self.forward(features=features)
                     print('Output: ', output)
-                    loss = self._loss(output, targets)
+                    loss = self._loss(output, targets.to(dist.get_rank()))
                     losses_cache["train"] += loss
                     loss.backward()
                     self._optimizer.step()
@@ -76,7 +76,7 @@ class DLFramework:
                     with torch.no_grad():
                         if dist.get_rank() == 0:
                             output = self.forward(features=features)
-                            val_loss = self._loss(output, targets)
+                            val_loss = self._loss(output, targets.to(dist.get_rank()))
                             losses_cache["validation"] += val_loss
 
             # Determine print information
@@ -88,7 +88,7 @@ class DLFramework:
             else:
                 print(epoch_print, train_print)
 
-        print("...Training Loop Completed...")
+        print(f"Rank {dist.get_rank()}\n ...Training Loop Completed...")
 
     def save(self, path: Path):
         """

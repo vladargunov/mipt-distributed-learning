@@ -5,7 +5,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from torch.distributed import init_process_group, destroy_process_group
 import torch
 import torch.nn as nn
-
+import torch.distributed as dist
 import numpy as np
 
 from processing import framework
@@ -29,8 +29,9 @@ def main():
     sample_input_dataset = Dataset(data=sample_data)
 
     # Create a model and loss
-    mlp_distr = DistrMLP(input_shape=(16, 128), output_shape=64)
-    test_model = nn.Sequential(mlp_distr, torch.nn.Linear(64, 1)) # distributed mlp perceptron
+    num_gpus = 2
+    mlp_distr = DistrMLP(input_shape=(16, 128), output_shape=64, num_gpus=num_gpus)
+    test_model = nn.Sequential(mlp_distr, torch.nn.Linear(64 * num_gpus, 1).to(dist.get_rank())) # distributed mlp perceptron
     test_loss = torch.nn.CrossEntropyLoss()
 
     # Initalise a framework
