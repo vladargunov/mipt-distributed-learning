@@ -51,19 +51,18 @@ class DLFramework:
         """
         Perform train and validation on given data in prepare_data
         """
-        print("...Start Training Loop...")
+        if dist.get_rank() == 0:
+            print("...Start Training Loop...")
         for epoch in range(1, epochs + 1):
             losses_cache = {"train": 0, "validation": 0}
             for features, targets in self._dataset.train_dataloader(batch_size):
 
-
-
                 if dist.get_rank() == 0:
                     self._model.zero_grad()
                     output = self.forward(features=features)
-                    print('Output: ', output)
                     loss = self._loss(output, targets.to(dist.get_rank()))
                     losses_cache["train"] += loss
+                    print(f"Rank {dist.get_rank()}, calling backward")
                     loss.backward()
                     self._optimizer.step()
                 else:
@@ -87,8 +86,8 @@ class DLFramework:
                     print(epoch_print, train_print, val_print, sep=" | ")
                 else:
                     print(epoch_print, train_print)
-
-        print(f"Rank {dist.get_rank()}\n ...Training Loop Completed...")
+        if dist.get_rank() == 0:
+            print(f"Rank {dist.get_rank()}\n ...Training Loop Completed...")
 
     def save(self, path: Path):
         """
