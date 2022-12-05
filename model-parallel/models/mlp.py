@@ -10,12 +10,12 @@ class DistrMLP(nn.Module):
 
         self.current_rank = dist.get_rank()
 
-        self.fc = nn.Linear(input_shape, output_shape).to(self.current_rank)
+        self.fc = nn.Linear(input_shape[1], output_shape).to(self.current_rank)
         self.relu = nn.ReLU()
-        if self.current_rank == 0:  #when root
-            self.out_tensors = [torch.zeros(*input_shape).to(0) for _ in range(num_gpus)]
-        else:
-            self.out_tensors = None
+
+        self.out_tensors = [torch.zeros(input_shape[0], output_shape).to(0) for _ in range(num_gpus)]
+
+
 
 
 
@@ -29,3 +29,4 @@ class DistrMLP(nn.Module):
             return torch.cat(self.out_tensors, -1)
         else:
             dist.gather(x)
+            return torch.cat(self.out_tensors, -1)

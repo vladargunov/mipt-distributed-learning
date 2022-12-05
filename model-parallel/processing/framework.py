@@ -57,12 +57,17 @@ class DLFramework:
             for features, targets in self._dataset.train_dataloader(batch_size):
                 self._model.zero_grad()
 
-                output = self.forward(features=features)
+
                 if dist.get_rank() == 0:
+                    output = self.forward(features=features)
+                    print('Output: ', output)
                     loss = self._loss(output, targets)
                     losses_cache["train"] += loss
                     loss.backward()
                     self._optimizer.step()
+                else:
+                    with torch.no_grad():
+                        output = self.forward(features=features)
 
             if epoch % validation_frequency == 0:
                 for features, targets in self._dataset.validation_dataloader(
