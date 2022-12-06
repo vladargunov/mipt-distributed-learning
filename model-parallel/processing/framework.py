@@ -3,7 +3,6 @@ import torch
 import numpy as np
 
 from processing.data_management import Dataset
-import torch.distributed as dist
 
 from typing import Optional, Dict
 from pathlib import Path
@@ -51,43 +50,35 @@ class DLFramework:
         """
         Perform train and validation on given data in prepare_data
         """
-        if dist.get_rank() == 0:
-            print("...Start Training Loop...")
+        print("...Start Training Loop...")
         for epoch in range(1, epochs + 1):
             losses_cache = {"train": 0, "validation": 0}
             for features, targets in self._dataset.train_dataloader(batch_size):
-
-                if dist.get_rank() == 0:
-                    self._model.zero_grad()
-                    output = self.forward(features=features)
-                    loss = self._loss(output, targets.to(dist.get_rank()))
-                    losses_cache["train"] += loss
-                    print(f"Rank {dist.get_rank()}, calling backward")
-                    loss.backward()
-                    self._optimizer.step()
-                else:
-                    output = self.forward(features=features)
+                self._model.zero_grad()
+                output = self.forward(features=features)
+                loss = self._loss(output, targets)
+                losses_cache["train"] += loss
+                loss.backward()
+                self._optimizer.step()
 
             if epoch % validation_frequency == 0:
                 for features, targets in self._dataset.validation_dataloader(
                     batch_size
                 ):
                     with torch.no_grad():
-                        if dist.get_rank() == 0:
-                            output = self.forward(features=features)
-                            val_loss = self._loss(output, targets.to(dist.get_rank()))
-                            losses_cache["validation"] += val_loss
-            if dist.get_rank() == 0:
-                # Determine print information
-                epoch_print = f"Epoch : {epoch}"
-                train_print = f"Train Loss : {losses_cache['train']:.2f}"
-                val_print = f"Validation Loss : {losses_cache['validation']:.2f}"
-                if losses_cache["validation"] != 0:
-                    print(epoch_print, train_print, val_print, sep=" | ")
-                else:
-                    print(epoch_print, train_print)
-        if dist.get_rank() == 0:
-            print(f"Rank {dist.get_rank()}\n ...Training Loop Completed...")
+                        output = self.forward(features=features)
+                        losses_cache["validation"] += loss
+
+            # Determine print information
+            epoch_print = f"Epoch : {epoch}"
+            train_print = f"Train Loss : {losses_cache['train']:.2f}"
+            val_print = f"Validation Loss : {losses_cache['validation']:.2f}"
+            if losses_cache["validation"] != 0:
+                print(epoch_print, train_print, val_print, sep=" | ")
+            else:
+                print(epoch_print, train_print)
+
+        print("...Training Loop Completed...")
 
     def save(self, path: Path):
         """
