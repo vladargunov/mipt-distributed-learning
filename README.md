@@ -36,3 +36,19 @@ I finally worked out the problem (even though missed a deadline a little bit) --
 After that you will start a process of data-parallel training on two gpus, please note that in `CUDA_VISIBLE_DEVICES` you can pass an arbitrary number of gpus that your machine can support.
 
 Thus, if you would like to use several gpus the commands above should be called, and in case of 1 gpu or cpu please refer to the example from previous exercise.
+
+---
+
+## Homework 3
+
+The approach to run examples is similar to homework 2.
+
+For the tensor parallel, repeat the first 4 steps from homework 2, then go into teh directory */mipt-distributed-learning/model-parallel/examples* and install libraries and run examples with the following comands.
+
+`python test_model_parallel.py`
+
+It will run an example with distributed MLP on two gpus. It can also be changed within the code to run on another number of them.
+
+For pipeline parallel method, run this command (for this approach I was able to configure only the simple forward pass with two gpus)
+
+`CUDA_VISIBLE_DEVICES=4,5 torchrun --standalone --nproc_per_node=gpu test_pipeline_parallelism.py`
