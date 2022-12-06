@@ -55,6 +55,10 @@ class DLFramework:
             losses_cache = {"train": 0, "validation": 0}
             for features, targets in self._dataset.train_dataloader(batch_size):
                 self._model.zero_grad()
+
+                if not features.is_cuda:
+                    targets = targets.to(0)
+
                 output = self.forward(features=features)
                 loss = self._loss(output, targets)
                 losses_cache["train"] += loss

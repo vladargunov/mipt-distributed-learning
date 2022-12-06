@@ -13,8 +13,6 @@ from models.mlp import DistrMLP
 
 
 def main():
-    ddp_setup()
-
     # Create sample dataset
     # Sample data
     sample_data = {
@@ -26,8 +24,8 @@ def main():
 
     # Create a model and loss
     num_gpus = 2 # set the number of gpus available
-    mlp_distr = DistrMLP(input_shape=(16, 128), output_shape=64, num_gpus=num_gpus)
-    test_model = nn.Sequential(mlp_distr, torch.nn.Linear(64 * num_gpus, 1).to(dist.get_rank())) # distributed mlp perceptron
+    mlp_distr = DistrMLP(input_shape=128, output_shape=64, num_gpus=num_gpus)
+    test_model = nn.Sequential(mlp_distr, torch.nn.Linear(64, 1).to(0)) # distributed mlp perceptron
     test_loss = torch.nn.CrossEntropyLoss()
 
     # Initalise a framework
@@ -37,7 +35,7 @@ def main():
     test_framework.prepare_data(dataset=sample_input_dataset)
 
     # Train model
-    test_framework.train(epochs=3, batch_size=16, validation_frequency=1)
+    test_framework.train(epochs=3, batch_size=4, validation_frequency=1)
 
 
 
