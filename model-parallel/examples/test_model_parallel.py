@@ -2,18 +2,14 @@ import os
 import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from torch.distributed import init_process_group, destroy_process_group
 import torch
 import torch.nn as nn
-import torch.distributed as dist
 import numpy as np
-
 from processing import framework
 from processing.data_management import Dataset
 from models.mlp import DistrMLP
 
-def ddp_setup():
-    init_process_group(backend="nccl")
+
 
 
 def main():
@@ -29,7 +25,7 @@ def main():
     sample_input_dataset = Dataset(data=sample_data)
 
     # Create a model and loss
-    num_gpus = 2
+    num_gpus = 2 # set the number of gpus available
     mlp_distr = DistrMLP(input_shape=(16, 128), output_shape=64, num_gpus=num_gpus)
     test_model = nn.Sequential(mlp_distr, torch.nn.Linear(64 * num_gpus, 1).to(dist.get_rank())) # distributed mlp perceptron
     test_loss = torch.nn.CrossEntropyLoss()
@@ -42,7 +38,6 @@ def main():
 
     # Train model
     test_framework.train(epochs=3, batch_size=16, validation_frequency=1)
-    destroy_process_group()
 
 
 
