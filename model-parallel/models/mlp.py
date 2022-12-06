@@ -10,7 +10,7 @@ class DistrMLP(nn.Module):
 
 
         for idx in range(num_gpus):
-            setattr(self, f'fc{idx}', nn.Linear(input_shape // self.num_gpus, output_shape))
+            setattr(self, f'fc{idx}', nn.Linear(input_shape, output_shape // self.num_gpus))
 
         self.relu = nn.ReLU()
 
@@ -18,8 +18,9 @@ class DistrMLP(nn.Module):
     def forward(self, x):
         outs = []
         for idx in range(self.num_gpus):
-            x = x.to(idx)
-            x = self.relu(getattr(self, f'fc{idx}')(x))
+            z = x.to(idx)
+            layer = getattr(self, f'fc{idx}').to(idx)
+            z = self.relu(layer(z))
             # Return it to host
-            outs.append(x.to(0))
-        return torch.cat(outs, -1)
+            outs.append(z.to(0))
+        return torch.cat(outs, 1)
